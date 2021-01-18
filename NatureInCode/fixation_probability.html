@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html> 
+    
+    <head>
+        <script> 
+            var N=100; //population size
+            var p;
+            var simulations = 1000000; // cuantas simulaciones
+            var fixations_of_mutant=0;
+            var total_generations=0;
+            
+
+            function next_generation(){
+                var draws = 2*N;
+                var a1=0;
+                var a2=0;
+                for (var i=0; i<draws; i=i+1){
+                    if (Math.random()<=p){ //p=prob a1 allele
+                        a1= a1+1;
+                    }
+                    else{
+                        a2 = a2+1;
+                    }
+                }
+                p= a1 / (2*N)
+            }
+            function run_until_fixation(){
+                p = 1/(2*N);
+                var generations=0;
+                do{
+                    //console.log(p)
+                    next_generation();
+                    generations+=1;
+                } while (p > 0 && p < 1);
+                //console.log(p)
+                if (p == 1){
+                    total_generations+= generations; // sum of all gen that p end up to 1
+                    fixations_of_mutant=fixations_of_mutant + 1;
+                }
+            }
+            for (var j=0;j < simulations;j += 1){
+                run_until_fixation();
+
+            }
+
+            console.log(total_generations/ fixations_of_mutant); 
+            /* average number of gen to go to fixation it's expected 4N
+            */
+        </script>
+    </head>
+    <body>
+
+    </body>
+</html>

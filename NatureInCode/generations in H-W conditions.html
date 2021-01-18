@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var a1a1=0.15;  
+            var a2a2=0.35;
+            var a1a2=1-(a1a1+a2a2);
+            
+            var p= a1a1+a1a2/2;
+            var q= 1-p; 
+
+            function round_number(value, decimals){
+                var shifter = Math.pow(10,decimals);
+                return Math.round(value*(shifter))/shifter; 
+            }
+
+            console.log("generation 0:",a1a1, a1a2,a2a2);
+            // calculating the next generation
+            /* 
+            mutliple line comento OMG
+            */
+
+            function create_next_generation() { 
+                a1a1 = p*p;
+                a1a2= 2*p*q;
+                a2a2=q*q;
+             }
+            
+            for (var i=0; i<5; i+=1) {
+                create_next_generation();
+                console.log("generation "+(i+1)+":",round_number(a1a1,2),round_number(a1a2,2),round_number(a2a2,2))
+            }
+
+            
+            
+            
+
+
+        </script>
+    </head>
+</html>

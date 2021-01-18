@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v6.min.js">
+        </script>
+    </head>
+    <body>
+        <script>
+            //spatial simulation
+            var grid_length= 100;
+            var grid=[]; //2d array
+            var temp_grid=[];
+
+            var beta = 0.05; //transmition prob
+            var gamma = 0.15; // recovery prob
+            var rewiring_probability=0.01
+            ;
+
+            var number_of_simulations = 100;
+            var data=[];
+
+            function get_random_int(min,max){
+                return Math.floor(Math.random()*(max-min+1)) + min
+            }
+            function init_grid(){
+                for (var i=0; i<grid_length; i+=1){
+                    grid[i]=[]
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        grid[i][ii]="S";// susceptible
+                    }
+                }
+                grid[get_random_int(0,grid_length-1)][get_random_int(0,grid_length-1)]="I";
+            }
+            
+
+            function get_bounded_index(index){
+                var bounded_index=index;
+                if (index < 0){
+                    bounded_index=index+grid_length;
+                }
+                if (grid_length<=index){
+                    bounded_index= index - grid_length;
+                }
+                return bounded_index;
+            }
+
+            function try_infection(i,ii){
+               if (grid[i][ii]=="S"){
+                   if (Math.random()<beta){
+                       temp_grid[i][ii]="I"; // we are gonna update the temp grid to avoid errors
+                   }
+               }
+            }
+
+            function expose_neighbors(i,ii){
+                for (var n_i=i-1; n_i<=i+1; n_i+=1){
+                    for(var n_ii=ii-1;n_ii<=ii+1;n_ii+=1){  // passing by the neighbors
+                        if (n_i==i && n_ii==ii){
+                            continue; // pasate esto uwu
+                        }
+                        if (Math.random()<rewiring_probability){ // long disntance diseases rare event
+                            var random_i=get_random_int(0,grid_length-1)
+                            var random_ii=get_random_int(0,grid_length-1)
+                            try_infection(random_i,random_ii);
+                        }
+                        else{
+                            try_infection(get_bounded_index(n_i),get_bounded_index(n_ii));
+                        }
+                        
+                    }
+                }
+            }
+
+            function try_recovery(i,ii){
+                if (grid[i][ii]=="I"){
+                    if(Math.random()<gamma){
+                        temp_grid[i][ii]="R";
+                    }
+                }
+            }
+
+            function run_time_step(){
+                for (var i=0; i<grid_length; i+=1){
+                    temp_grid[i]=[];
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        temp_grid[i][ii]=grid[i][ii];// susceptible
+                    }
+                }
+                for (var i=0; i<grid_length; i+=1){
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        if (grid[i][ii] == "I"){
+                            expose_neighbors(i,ii);
+                            try_recovery(i,ii);
+                        }
+                    }
+                }
+
+                for (var i=0; i<grid_length; i+=1){
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        grid[i][ii]=temp_grid[i][ii];
+                    }
+                }
+            }
+            
+            function get_number_in_state(state){
+                var counter =0;
+                for (var i=0;i<grid_length;i+=1){
+                    for (var ii=0;ii<grid_length;ii+=1){
+                        if (grid[i][ii]==state){
+                            counter+=1;
+                        }
+                    }
+                }
+                return counter;
+            }
+
+            function get_number_of_infected(){
+                return get_number_in_state("I");
+            }
+
+            function get_number_of_susceptible(){
+                return get_number_in_state("S");
+            }
+
+            function get_number_of_recovered(){
+                return get_number_in_state("R");
+            }
+
+            function run_simulation(){
+                init_grid();
+                while(get_number_of_infected()>0){
+                    run_time_step();
+                }
+            }
+            
+            for(var i=0; i<number_of_simulations;i+=1){
+                run_simulation();
+                data.push(get_number_of_recovered()); // outbreak size
+            }
+
+            function calculate_average_size(data){
+                var sum=0;
+                for (var i=0;i<data.length;i++){//i++ == i+=1
+                    sum+=data[i];
+                }
+                return sum/(data.length)
+            }
+            console.log(calculate_average_size(data))
+           
+        </script>
+    </body>
+</html>

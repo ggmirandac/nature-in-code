@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var number_of_sequences=100;// population size
+            var sequence_lenght = 20;
+            var original_sequence=[];
+            var sequences=[]; // population
+            var number_of_generations=100;
+            var mutation_rate=0.0001; // per base and generation 
+            var after_gen="After "+number_of_generations+" Generations";
+            var BASES=['A','C','G','T'];
+
+
+            function random_base(current_base){   // this function is gonna generate a random base
+                var new_base;
+                var bases = ['A','C','G','T'];
+                do {
+                    var index = Math.floor(Math.random() * 4); // I need to generate a random number between 0 and 3
+                    new_base = bases[index]
+                }while(new_base == current_base); // it's gonna run until it's not equal anymore
+                return bases[index];
+            }
+
+            function generate_first_sequence(){ // this function is going to create the fist sequence that is gonna repeat in the population due to a lack of genetic variation
+                for (var i=0; i<sequence_lenght; i+=1){
+
+                    original_sequence.push(random_base());
+                }
+
+            }
+            function generate_first_generation(){ // it's going to create the first generation by repeating the first sequence in the population, every sequence is the same
+                generate_first_sequence(); // va a crear original_sequence
+                for (var i = 0; i<number_of_sequences; i+=1){
+                    sequences.push(original_sequence.slice()); // It's gonna take a copy of or_seq and gonna push it    
+                }
+
+            }
+
+            function print_sequence(sequence){
+                var sequence_string = "";
+                for(var i=0; i<sequence_lenght; i+=1){
+                    sequence_string+=sequence[i];
+                }
+                console.log(sequence_string) // with this im gonna print the string not an array
+
+            }
+
+            function print_sequences(title){ // help us to see the dna as a string not an array
+                console.log(title);
+                for (var i=0; i<number_of_sequences;i+=1){
+                    print_sequence(sequences[i]); // I'm giving it the i-dna, 
+                }
+                console.log("")
+            }
+
+            function run_generations(){
+                for (var i=0; i<number_of_generations; i+=1){ // pasar por generaciones
+                    for (var ii=0; ii<number_of_sequences; ii+=1){ // going for every sequence
+                        for (var iii=0; iii<sequence_lenght; iii+=1 ){  //going for each base
+                            if (Math.random()<mutation_rate){
+                                sequences[ii][iii] =random_base(sequences[ii][iii]); //accesing to the index of an 2d array
+                            }
+                        }   
+                    }
+                }
+            }
+
+            generate_first_generation();// generates the first sequence
+            print_sequences("Generation 0");
+            run_generations();
+            /*
+            Lo que hago con esto es generar despues de 100 generaciones como cambio
+            */
+            print_sequences(after_gen);
+        </script>
+    </head>
+    <body>
+
+    </body>
+</html>

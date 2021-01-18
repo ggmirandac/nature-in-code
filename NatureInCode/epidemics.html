@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v6.min.js">
+        </script>
+    </head>
+    <body>
+        <script>
+            function draw_grid(data,colors) {
+                var width = 600;
+                var height = 600;
+                var grid_length = data.length;
+
+                var svg = d3.select('body').append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+
+                var rw = Math.floor(width/grid_length);
+                var rh = Math.floor(height/grid_length);
+
+                var g = svg.selectAll('g')
+                        .data(data)
+                        .enter()
+                        .append('g')
+                        .attr('transform', function (d, i) {
+                        return 'translate(0, ' + (width/grid_length) * i + ')';
+                        });
+
+                g.selectAll('rect')
+                        .data(function (d) {
+                        return d;
+                        })
+                        .enter()
+                        .append('rect')
+                        .attr('x', function (d, i) {
+                        return (width/grid_length) * i;
+                        })
+                        .attr('width', rw)
+                        .attr('height', rh)
+                        .attr('class',function(d) {
+                        return d;
+                        });
+                if (!colors) {
+                    d3.selectAll(".A1A1").style("fill","#fff");
+                    d3.selectAll(".A1A2").style("fill","#2176c9");
+                    d3.selectAll(".A2A2").style("fill","#042029");
+                }
+                else {
+                    for (var i = 0; i < colors.length; i = i + 2) {
+                        d3.selectAll("."+colors[i]).style("fill",colors[i+1]);	
+                    }
+                }
+            }
+
+            function update_grid(data,colors){
+                var grid_length = data.length;
+                d3.select('svg').selectAll('g')
+                    .data(data)
+                    .selectAll('rect')
+                    .data(function (d) {
+                    return d;
+                    })
+                    .attr('class',function(d) {
+                    return d;
+                    });
+                if (!colors) {
+                    d3.selectAll(".A1A1").style("fill","#fff");
+                    d3.selectAll(".A1A2").style("fill","#2176c9");
+                    d3.selectAll(".A2A2").style("fill","#042029");
+                }
+                else {
+                    for (var i = 0; i < colors.length; i = i + 2) {
+                        d3.selectAll("."+colors[i]).style("fill",colors[i+1]);	
+                    }
+                }
+            }
+
+            //spatial simulation
+            var grid_length= 100;
+            var grid=[]; //2d array
+            var temp_grid=[];
+
+            var beta = 0.1; //transmition prob
+            var gamma = 0.5; // recovery prob
+
+            function get_random_int(min,max){
+                return Math.floor(Math.random()*(max-min+1)) + min
+            }
+            function init_grid(){
+                for (var i=0; i<grid_length; i+=1){
+                    grid[i]=[]
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        grid[i][ii]="S";// susceptible
+                    }
+                }
+                grid[get_random_int(0,grid_length-1)][get_random_int(0,grid_length-1)]="I";
+            }
+            init_grid();
+
+            draw_grid(grid,["S","#dcdcdc","I","#c82605","R","6fc401"]);
+            
+
+            function get_bounded_index(index){
+                var bounded_index=index;
+                if (index < 0){
+                    bounded_index=index+grid_length;
+                }
+                if (grid_length<=index){
+                    bounded_index= index - grid_length;
+                }
+                return bounded_index;
+            }
+
+            function try_infection(i,ii){
+               if (grid[i][ii]!="I"){
+                   if (Math.random()<beta){
+                       temp_grid[i][ii]="I"; // we are gonna update the temp grid to avoid errors
+                   }
+               }
+            }
+
+            function expose_neighbors(i,ii){
+                for (var n_i=i-1; n_i<=i+1; n_i+=1){
+                    for(var n_ii=ii-1;n_ii<=ii+1;n_ii+=1){  // passing by the neighbors
+                        if (n_i==i && n_ii==ii){
+                            continue; // pasate esto uwu
+                        }
+                        if (Math.random()<0.02){ // long disntance diseases rare event
+                            var random_i=get_random_int(0,grid_length-1)
+                            var random_ii=get_random_int(0,grid_length-1)
+                            try_infection(random_i,random_ii);
+                        }
+                        else{
+                            try_infection(get_bounded_index(n_i),get_bounded_index(n_ii));
+                        }
+                        
+                    }
+                }
+            }
+
+            function try_recovery(i,ii){
+                if (grid[i][ii]=="I"){
+                    if(Math.random()<gamma){
+                        temp_grid[i][ii]="R";
+                    }
+                }
+            }
+
+            function run_time_step(){
+                for (var i=0; i<grid_length; i+=1){
+                    temp_grid[i]=[];
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        temp_grid[i][ii]=grid[i][ii];// susceptible
+                    }
+                }
+                for (var i=0; i<grid_length; i+=1){
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        if (grid[i][ii] == "I"){
+                            expose_neighbors(i,ii);
+                            try_recovery(i,ii);
+                        }
+                    }
+                }
+
+                for (var i=0; i<grid_length; i+=1){
+                    for (var ii=0; ii<grid_length; ii+=1){
+                        grid[i][ii]=temp_grid[i][ii];
+                    }
+                }
+            }
+
+            function simulate_and_visualize(){
+                run_time_step();
+                update_grid(grid,["S","#dcdcdc","I","#c82605","R","#6fc401"]);
+            }
+            setInterval(simulate_and_visualize, 50);
+        </script>
+    </body>
+</html>
